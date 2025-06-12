@@ -1,0 +1,16 @@
+services:
+  frontend:
+    build:
+      context: ./mr
+    container_name: mr-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./mr-back
+    container_name: mr-backend
+    ports:
+      - "3000:3000"
