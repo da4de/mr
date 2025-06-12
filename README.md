@@ -4,7 +4,7 @@ This is a fullstack monorepo project containing both frontend and backend parts,
 
 ## Project Structure
 
-mr/
+mr/<br>
 ├── mr-frontend/ # Angular frontend<br>
 ├── mr-backend/ # NestJS backend<br>
 ├── docker-compose.yml<br>
