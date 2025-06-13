@@ -1,7 +1,7 @@
 services:
   frontend:
     build:
-      context: ./mr
+      context: ./mr-frontend
     container_name: mr-frontend
     ports:
       - "8080:80"
@@ -10,7 +10,7 @@ services:
 
   backend:
     build:
-      context: ./mr-back
+      context: ./mr-backend
     container_name: mr-backend
     ports:
       - "3000:3000"
