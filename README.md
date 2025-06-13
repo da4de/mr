@@ -4,16 +4,16 @@ This is a fullstack monorepo project containing both frontend and backend parts,
 
 ## Project Structure
 
-mr/
-├── mr-frontend/ # Angular frontend
-├── mr-backend/ # NestJS backend
-├── docker-compose.yml
+mr/<br>
+├── mr-frontend/ # Angular frontend<br>
+├── mr-backend/ # NestJS backend<br>
+├── docker-compose.yml<br>
 
 Quick Start (with Docker Compose)
 ```bash
 docker compose up --build
 ```
 
-The application will be available at:
-Frontend: http://localhost:8080
-Backend API: http://localhost:3000
+The application will be available at:<br>
+Frontend: http://localhost:8080<br>
+Backend API: http://localhost:3000<br>
