@@ -1,17 +1,17 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
+import { Component } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
+import { SearchTicker } from './search/components/search-ticker/search-ticker';
+import { SearchResult } from './search/components/search-result/search-result';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ButtonModule, ChartModule],
+  imports: [ChartModule, SearchTicker, SearchResult],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
-  private http = inject(HttpClient)
+  //constructor(private primeng: PrimeNG) { }
+
   labels = ['1', '2', '3', '4', '5', '6', '7',];
   data = {
     labels: this.labels,
@@ -24,10 +24,4 @@ export class App {
     }]
   }
   options = {}
-  onclick = async () => {
-    /* just for test */
-    this.http.get('/stocks/list').subscribe(test => {
-      console.log('test', test)
-    })
-  }
 }

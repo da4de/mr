@@ -1,15 +1,13 @@
 import { Controller, Get, Query } from "@nestjs/common";
-import { ITickers, restClient } from "@polygon.io/client-js";
 import { ITickersQueryDTO } from "./tickers.query.dto";
+import { StocksService } from "./stocks.service";
 
 @Controller('stocks')
 export class StocksController {
+    constructor(private stocksService: StocksService) { }
+
     @Get('tickers')
-    async list(
-        @Query() query: ITickersQueryDTO
-    ): Promise<ITickers> {
-        console.log('query', query)
-        const rest = restClient(process.env.POLY_API_KEY);
-        return rest.reference.tickers(query);
+    async tickers(@Query() query: ITickersQueryDTO) {
+        return this.stocksService.tickers(query)
     }
 }

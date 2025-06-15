@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
+  /*TODO delete*/
   getHello(): string {
-    return `Hello World! POLY_API_KEY="${process.env.POLY_API_KEY}"`;
+    return `Hello World!`;
   }
 }
