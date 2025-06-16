@@ -1,6 +1,9 @@
-<label for="search">Search</label>
-<div class="flex flex-row gap-2">
-    <input pInputText id="search" aria-describedby="search-help" [(value)]="search" required />
-    <p-button (click)="onclick()">Search</p-button>
-</div>
-<small id="search-help">Enter a stock ticker or part of a company name to search.</small>
+<form class="flex flex-col gap-2" (ngSubmit)="onSubmit()" #searchForm="ngForm">
+    <label for="search">Search</label>
+    <div class="flex flex-row gap-2">
+        <input pInputText id="search" name="search" aria-describedby="search-help" [(ngModel)]="searchParams.search"
+            required />
+        <p-button type="submit" [disabled]="!searchForm.form.valid">Search</p-button>
+    </div>
+    <small id="search-help">Enter a stock ticker or part of a company name to search.</small>
+</form>

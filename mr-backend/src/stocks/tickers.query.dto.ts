@@ -1,6 +1,6 @@
 import { ITickersQuery } from "@polygon.io/client-js";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, Max, Min } from "class-validator";
+import { IsEnum, IsOptional, Max, Min, MinLength } from "class-validator";
 
 export enum TickerTypeEnum {
     CS = "CS",
@@ -41,6 +41,7 @@ export class ITickersQueryDTO implements ITickersQuery {
     @IsEnum(MarketTypeEnum)
     market?: MarketTypeEnum = MarketTypeEnum.stocks;
     @IsOptional()
+    @MinLength(1)
     search?: string;
     @IsOptional()
     active?: 'true' | 'false' = 'true';

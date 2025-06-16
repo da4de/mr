@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { SearchTicker } from './search/components/search-ticker/search-ticker';
 import { SearchResult } from './search/components/search-result/search-result';
+import { FavoriteTickers } from "./favorites/components/favorite-tickers/favorite-tickers";
 
 @Component({
   selector: 'app-root',
-  imports: [ChartModule, SearchTicker, SearchResult],
+  imports: [ChartModule, SearchTicker, SearchResult, FavoriteTickers],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

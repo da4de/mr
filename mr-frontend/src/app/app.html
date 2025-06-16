@@ -2,10 +2,14 @@
   <div class="content">
     <div class="flex flex-row gap-2">
       <div class="flex flex-col gap-2">
-        <search-ticker></search-ticker>
-        <search-result></search-result>
+        <search-ticker />
+        <search-result />
       </div>
-      <p-chart type="line" [data]="data" [options]="options" class="h-[30rem]" />
+      <div class="flex flex-col gap-2">
+        <favorite-tickers />
+        <p-chart type="line" [data]="data" [options]="options" class="h-[30rem]" />
+      </div>
+      
     </div>
   </div>
 </main>

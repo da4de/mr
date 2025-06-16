@@ -1,0 +1,4 @@
+<label>Favorite tickers:</label>
+<div *ngIf="favorites$ | async as results" class="search-result">
+    <tickers-list [tickers]="results" emptyMessage="Your favorite stocks will appear here."></tickers-list>
+</div>
