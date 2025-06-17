@@ -13,6 +13,20 @@ import { FavoriteService } from "../../favorites.service";
 export class FavoriteTickers {
     favorites$!: Observable<Ticker[]>;
 
+    actions = [
+        {
+            icon: 'pi pi-chart-line',
+            action: (item: Ticker) => {
+                console.log('add to chart')
+            }
+        },
+        {
+            icon: 'pi pi-trash',
+            action: (item: Ticker) => {
+                this.favoriteService.delete(item.symbol);
+            }
+        }];
+
     constructor(private favoriteService: FavoriteService) { }
 
     ngOnInit() {

@@ -22,22 +22,22 @@ export class FavoriteService {
     }
 
     add(ticker: Ticker) {
-        if (!this.isFavorite(ticker.ticker)) {
+        if (!this.isFavorite(ticker.symbol)) {
             const favorites = this.favoritesSubject.getValue();
             favorites.push(ticker)
             this.save(favorites);
         }
     }
 
-    delete(ticker: Ticker['ticker']) {
+    delete(ticker: Ticker['symbol']) {
         if (this.isFavorite(ticker)) {
             let favorites = this.favoritesSubject.getValue();
-            favorites = favorites.filter(item => item.ticker !== ticker)
+            favorites = favorites.filter(item => item.symbol !== ticker)
             this.save(favorites);
         }
     }
 
-    isFavorite(ticker: Ticker['ticker']) {
-        return ~this.favoritesSubject.getValue().findIndex(item => item.ticker === ticker)
+    isFavorite(ticker: Ticker['symbol']) {
+        return !!~this.favoritesSubject.getValue().findIndex(item => item.symbol === ticker)
     }
 }

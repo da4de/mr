@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from "@nestjs/common";
-import { ITickersQueryDTO } from "./tickers.query.dto";
+import { ITickersQueryDTO } from "./dto/tickers.query.dto";
 import { StocksService } from "./stocks.service";
 
 @Controller('stocks')
@@ -8,6 +8,9 @@ export class StocksController {
 
     @Get('tickers')
     async tickers(@Query() query: ITickersQueryDTO) {
+        //this.stocksService.tickers_finnhub();
         return this.stocksService.tickers(query)
     }
+
+
 }

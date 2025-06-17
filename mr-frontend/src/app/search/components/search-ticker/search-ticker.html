@@ -1,5 +1,5 @@
 <form class="flex flex-col gap-2" (ngSubmit)="onSubmit()" #searchForm="ngForm">
-    <label for="search">Search</label>
+    <label for="search"><strong>Search</strong></label>
     <div class="flex flex-row gap-2">
         <input pInputText id="search" name="search" aria-describedby="search-help" [(ngModel)]="searchParams.search"
             required />

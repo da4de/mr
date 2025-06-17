@@ -17,6 +17,10 @@
     flex-grow: 1;
 }
 
+.flex-shrink-0 {
+    flex-shrink: 0;
+}
+
 .flex-shrink-1 {
     flex-shrink: 1;
 }
@@ -30,5 +34,7 @@
 }
 
 .border {
-    border-top: 1px solid rgb(168, 168, 168);
+    margin-top: 5px;
+    border-top: 1px solid rgb(233, 233, 233);
+    padding-top: 5px;
 }
