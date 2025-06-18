@@ -8,7 +8,6 @@ export class StocksController {
 
     @Get('tickers')
     async tickers(@Query() query: ITickersQueryDTO) {
-        //this.stocksService.tickers_finnhub();
         return this.stocksService.tickers(query)
     }
 

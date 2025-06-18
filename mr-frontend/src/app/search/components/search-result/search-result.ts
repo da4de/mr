@@ -10,7 +10,6 @@ import { FavoriteService } from "../../../favorites/favorites.service";
     selector: 'search-result',
     templateUrl: 'search-result.html',
     imports: [NgIf, AsyncPipe, TickerList],
-    styleUrl: './search-result.css'
 })
 export class SearchResult {
     searchResults$!: Observable<Ticker[]>;
