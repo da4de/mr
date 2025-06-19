@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional, MinLength } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional } from "class-validator";
 
 export enum ExchangeEnum{
     US = 'US'

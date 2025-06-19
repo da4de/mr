@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, filter, map } from "rxjs";
 import { Ticker } from "../search/components/search-ticker/search.model";
 
 @Injectable({
@@ -39,5 +39,35 @@ export class FavoriteService {
 
     isFavorite(ticker: Ticker['symbol']) {
         return !!~this.favoritesSubject.getValue().findIndex(item => item.symbol === ticker)
+    }
+
+    addToChart(ticker: Ticker) {
+        if (!this.isChartTicker(ticker.symbol)) {
+            let favorites = this.favoritesSubject.getValue();
+            const update = favorites.map(item => 
+                item === ticker ? {...item, showInChart: true} : item
+            )
+            this.save(update);
+        }
+    }
+
+    deleteFromChart(ticker: Ticker) {
+        if (this.isChartTicker(ticker.symbol)) {
+            let favorites = this.favoritesSubject.getValue();
+            const update = favorites.map(item => 
+                item === ticker ? {...item, showInChart: false} : item
+            )
+            this.save(update);
+        }
+    }
+
+    getChartTickers() {
+        return this.favoritesSubject.pipe(
+            map(tickers => tickers.filter(ticker => ticker.showInChart))
+        )
+    }
+
+    isChartTicker(ticker: Ticker['symbol']) {
+        return !!~this.favoritesSubject.getValue().findIndex(item => item.symbol === ticker && item.showInChart)
     }
 }

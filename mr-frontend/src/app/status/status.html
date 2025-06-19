@@ -1,0 +1,5 @@
+<section>
+    <h3>Market Status</h3>
+    <div><label>Status:</label> {{ status.isOpen ? '🟢 Open' : '🔴 Closed'}}</div>
+    <div *ngIf="!!status.holiday"><label>Holiday:</label> {{ status.holiday }}</div>
+</section> 

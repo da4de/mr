@@ -4,7 +4,6 @@ import { Ticker } from "../../../search/components/search-ticker/search.model";
 import { AsyncPipe, NgIf } from "@angular/common";
 import { TickerList } from "../../../common/components/tickers-list/tickers-list";
 import { FavoriteService } from "../../favorites.service";
-import { WebSocketService } from "../../../websocket/websocket.service";
 
 @Component({
     selector: 'favorite-tickers',
@@ -13,16 +12,19 @@ import { WebSocketService } from "../../../websocket/websocket.service";
 })
 export class FavoriteTickers {
     favorites$!: Observable<Ticker[]>;
-    private messageSubscription!: Subscription;
 
     actions = [
         {
             icon: 'pi pi-chart-line',
             action: (item: Ticker) => {
-                console.log('add to chart 1');
-                this.webSocketService.sendMessage({ type: 'subscribe', symbol: item.symbol });
-                console.log('add to chart 2');
-            }
+                if (this.favoriteService.isChartTicker(item.symbol)) {
+                    this.favoriteService.deleteFromChart(item);
+                } else {
+                    this.favoriteService.addToChart(item);
+                }
+            },
+            outlined: (item: Ticker) => 
+                !this.favoriteService.isChartTicker(item.symbol)
         },
         {
             icon: 'pi pi-trash',
@@ -31,16 +33,9 @@ export class FavoriteTickers {
             }
         }];
 
-    constructor(private favoriteService: FavoriteService, private webSocketService: WebSocketService) { }
+    constructor(private favoriteService: FavoriteService) { }
 
     ngOnInit() {
         this.favorites$ = this.favoriteService.favorites$
-
-        // Subscribe to messages from the WebSocket
-        this.messageSubscription = this.webSocketService.getMessage().subscribe(
-            (message) => {
-                console.log('ws message to client', message)
-            }
-        );
     }
 }

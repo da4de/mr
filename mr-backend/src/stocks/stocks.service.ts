@@ -4,7 +4,8 @@ import { ITickersQueryDTO } from "./dto/tickers.query.dto";
 import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom, Timestamp } from "rxjs";
 import { AxiosError } from "axios";
-import { isSubscription } from "rxjs/internal/Subscription";
+import { IMarketStatusQueryDTO } from "./dto/market.status.query.dto";
+import { IMarketStatus } from "./dto/market.status.result.dto";
 
 @Injectable()
 export class StocksService {
@@ -17,7 +18,37 @@ export class StocksService {
         this.socket.addEventListener('open', (event) => {
             console.log('StocksSocket Ready!');
         })
-        this.socket.addEventListener('message', this.messageFromMarket);
+        this.socket.addEventListener('message', this.onMessageFromMarket);
+
+        /* TODO Testing in holiday*/
+        let aapl = 196.58
+        let msft = 480.24
+        let tsla = 322.05
+        let amzn = 212.52
+        let brka = 728200.52
+        setInterval(() => {
+            function randomizeStockPrice(prevPrice: number, volatility = 0.01): number {
+                const changePercent = (Math.random() * 2 - 1) * volatility; // e.g., between -1% and +1%
+                const nextPrice = prevPrice * (1 + changePercent);
+                return parseFloat(nextPrice.toFixed(2)); // round to 2 decimals
+            }
+            const data = JSON.stringify({
+                data: [
+                    { p: aapl, s: 'AAPL', t: Number((new Date())) },
+                    { p: msft, s: 'MSFT', t: Number((new Date())) },
+                    { p: tsla, s: 'TSLA', t: Number((new Date())) },
+                    { p: amzn, s: 'AMZN', t: Number((new Date())) },
+                    { p: brka, s: 'BRK.A', t: Number((new Date())) },
+                ]
+            })
+            aapl = randomizeStockPrice(aapl);
+            msft = randomizeStockPrice(msft);
+            tsla = randomizeStockPrice(tsla);
+            amzn = randomizeStockPrice(amzn);
+            brka = randomizeStockPrice(brka);
+            const message = new MessageEvent('test', { data });
+            this.onMessageFromMarket(message);
+        }, 1000)
     }
 
     async tickers(query: ITickersQueryDTO): Promise<ITickers> {
@@ -40,12 +71,32 @@ export class StocksService {
         return data
     }
 
-    messageFromMarket = (event: MessageEvent) => {
+    async status(query: IMarketStatusQueryDTO): Promise<IMarketStatus> {
+        /* TODO get process env variables from config service */
+        const url = `${process.env.FINNHUB_ADDRESS}/api/v1/stock/market-status`;
+        const { data } = await firstValueFrom(
+            this.httpService.get<IMarketStatus>(url,
+                {
+                    params: query,
+                    headers: { "X-Finnhub-Token": process.env.FINNHUB_API_KEY }
+                }).pipe(
+                    catchError((error: AxiosError) => {
+                        /* TODO handle exceptions properly */
+                        console.log(error.response?.data);
+                        throw 'An error happened!';
+                    })
+                )
+        )
+        return data
+    }
+
+    onMessageFromMarket = (event: MessageEvent) => {
         console.log('Message from Market ', event.data, JSON.parse(event.data));
         const { data = [] } = JSON.parse(event.data);
         data.forEach(({ s, p, t }: { s: string, p: number, t: number }) => {
-            this.subscriptions[s].forEach(client => {
-                client.send(JSON.stringify({ ticker: s, price: p, time: t }))
+            this.subscriptions[s]?.forEach(client => {
+                //console.log('client send message', { ticker: s, price: p, time: t })
+                client.send(JSON.stringify({type: 'price', ticker: s, price: p, time: t }))
             })
         })
     }

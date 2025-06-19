@@ -1,5 +1,3 @@
-import { Expose } from "class-transformer";
-
 export class ITickers {
     count: number;
     result: {
