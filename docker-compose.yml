@@ -13,4 +13,5 @@ services:
       context: ./mr-backend
     container_name: mr-backend
     ports:
-      - "3000:3000"
+      - "3000:3000" # REST API
+      - "3001:3001" # WebSocket

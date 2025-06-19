@@ -27,7 +27,7 @@
             "styles": [
               "src/styles.scss"
             ],
-            "outputPath": "dist/mr/browser",
+            "outputPath": "dist/mr",
             "index": "src/index.html"
           },
           "configurations": {

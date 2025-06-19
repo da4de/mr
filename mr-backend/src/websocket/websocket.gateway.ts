@@ -1,7 +1,7 @@
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway } from "@nestjs/websockets";
 import { StocksService } from "src/stocks/stocks.service";
 
-@WebSocketGateway(8080)
+@WebSocketGateway(3001)
 export class WSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(private stocksService: StocksService) { }
 
