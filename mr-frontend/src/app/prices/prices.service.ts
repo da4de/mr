@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { WebSocketService } from "../websocket/websocket.service";
 import { Ticker } from "../search/components/search-ticker/search.model";
-import { BehaviorSubject, buffer, bufferTime, map, Observable, sampleTime } from "rxjs";
+import { BehaviorSubject, bufferTime, map, Observable } from "rxjs";
 
 export interface ITickerPrice {
     [key: string]: { price: number, time: number }
@@ -15,7 +15,6 @@ export interface ITickerAvgPrice {
     providedIn: 'root'
 })
 export class PricesService {
-    private initialTime: number = Number(new Date());
     private subscriptions: Set<Ticker['symbol']> = new Set()
 
     private actualPriceSubject = new BehaviorSubject<ITickerPrice>({})
@@ -76,9 +75,7 @@ export class PricesService {
     }
 
     getActualPrice() {
-        return this.actualPriceSubject.pipe(
-            sampleTime(1000)
-        )
+        return this.actualPriceSubject.asObservable()
     }
 
     getMinutePrice(): Observable<ITickerAvgPrice> {
@@ -91,7 +88,7 @@ export class PricesService {
 
     get15MinutenPrices(): Observable<ITickerAvgPrice> {
         return this.actualPriceSubject.pipe(
-            bufferTime(60000 * 15),
+            bufferTime(15000 /*60000 * 15*/),
             map(this.calcAveragePriceFromBuffer)
         )
     }

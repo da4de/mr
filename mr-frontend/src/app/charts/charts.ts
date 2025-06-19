@@ -4,7 +4,7 @@ import { FavoriteService } from '../favorites/favorites.service';
 import { Observable } from 'rxjs';
 import { PricesService } from '../prices/prices.service';
 import { Ticker } from '../search/components/search-ticker/search.model';
-import { ChartComponent, ChartData } from 'chart.js';
+import { ChartComponent, ChartData, ChartOptions } from 'chart.js';
 
 function getHHMMSS(date: Date) {
   return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
@@ -55,9 +55,6 @@ export class Charts {
     this.chartTickers$ = this.favoriteService.getChartTickers();
   }
 
-  /* todo */
-  actualCount = 0;
-
   ngOnInit() {
     this.chartTickers$.subscribe(chartTickers => {
       const chartTickersSymbols = chartTickers.map(ticker => ticker.symbol);
@@ -71,72 +68,110 @@ export class Charts {
       })
     })
 
-    this.pricesService.getActualPrice().subscribe(actualPrices => {
-      this.actualCount++
-      //console.log('actualPrices', actualPrices);
-
-      for (const ticker in actualPrices) {
+    this.pricesService.getActualPrice().subscribe(prices => {
+      for (const ticker in prices) {
         const tickerData = this.data.datasets.find(item => item.label === ticker)
         if (tickerData) {
-          tickerData.data.push(actualPrices[ticker].price)
+          tickerData.data.push({ x: prices[ticker].time, y: prices[ticker].price });
         } else {
-          const tickerData = new Array(this.actualCount).fill(null)
-          tickerData.push(actualPrices[ticker].price)
           this.data.datasets.push({
             label: ticker,
-            data: tickerData,
-            fill: false,
-            tension: 0.2
+            data: [
+              { x: prices[ticker].time, y: prices[ticker].price }
+            ],
           })
         }
       }
 
-      (this.chartComponent as any).chart.update()
+      (this.chartComponent as any)?.chart?.update()
     })
 
-    this.pricesService.getMinutePrice().subscribe(avgPrice => {
-      console.log('minAvgPrice', avgPrice);
-      for (const ticker in avgPrice) {
+    this.pricesService.getMinutePrice().subscribe(prices => {
+      console.log('minAvgPrice', prices);
+
+      for (const ticker in prices) {
         const tickerData = this.data1min.datasets.find(item => item.label === ticker)
         if (tickerData) {
-          tickerData.data.push(avgPrice[ticker].price)
+          tickerData.data.push({ x: Date.now(), y: prices[ticker].price });
         } else {
-          const tickerData = new Array(this.actualCount).fill(null)
-          tickerData.push(avgPrice[ticker].price)
           this.data1min.datasets.push({
             label: ticker,
-            data: tickerData,
-            fill: false,
-            tension: 0.2
+            data: [
+              { x: Date.now(), y: prices[ticker].price }
+            ],
           })
         }
       }
 
       (this.chartComponent1 as any).chart.update()
-
     })
 
-    this.pricesService.get15MinutenPrices().subscribe(avgPrice => {
-      console.log('get15MinutenPrices', avgPrice);
+    this.pricesService.get15MinutenPrices().subscribe(prices => {
+      console.log('get15MinutenPrices', prices);
+
+      for (const ticker in prices) {
+        const tickerData = this.data15min.datasets.find(item => item.label === ticker)
+        if (tickerData) {
+          tickerData.data.push({ x: Date.now(), y: prices[ticker].price });
+        } else {
+          this.data15min.datasets.push({
+            label: ticker,
+            data: [
+              { x: Date.now(), y: prices[ticker].price }
+            ],
+          })
+        }
+      }
+
+      (this.chartComponent15 as any).chart.update()
     })
   }
 
 
 
-  data: ChartData = {
+  data: ChartData<'line'> = {
     labels: getSecLabels(new Date(), 60),
     datasets: []
   }
 
-  data1min: ChartData = {
+  data1min: ChartData<'line'> = {
     labels: getMinLabels(new Date(), 15),
     datasets: []
   }
 
-  data15min: ChartData = {
+  data15min: ChartData<'line'> = {
     labels: get15MinLabels(new Date(), 3),
     datasets: []
   }
 
-  options = {}
+  options: ChartOptions<'line'> = {
+    responsive: true,
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'minute'
+        },
+        title: {
+          display: true,
+          text: 'Time'
+        },
+        min: Number(Date.now()),
+        //max: Number(Date.now() + 60000)
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Price'
+        },
+        beginAtZero: false
+      }
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top'
+      }
+    }
+  };
 }

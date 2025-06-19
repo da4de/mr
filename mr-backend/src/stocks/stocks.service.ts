@@ -26,29 +26,41 @@ export class StocksService {
         let tsla = 322.05
         let amzn = 212.52
         let brka = 728200.52
-        setInterval(() => {
-            function randomizeStockPrice(prevPrice: number, volatility = 0.01): number {
+        function randomizeStockPrice(prevPrice: number, volatility = 0.01): number {
                 const changePercent = (Math.random() * 2 - 1) * volatility; // e.g., between -1% and +1%
                 const nextPrice = prevPrice * (1 + changePercent);
                 return parseFloat(nextPrice.toFixed(2)); // round to 2 decimals
             }
+
+        setInterval(() => {
             const data = JSON.stringify({
                 data: [
-                    { p: aapl, s: 'AAPL', t: Number((new Date())) },
-                    { p: msft, s: 'MSFT', t: Number((new Date())) },
                     { p: tsla, s: 'TSLA', t: Number((new Date())) },
                     { p: amzn, s: 'AMZN', t: Number((new Date())) },
-                    { p: brka, s: 'BRK.A', t: Number((new Date())) },
                 ]
             })
             aapl = randomizeStockPrice(aapl);
             msft = randomizeStockPrice(msft);
             tsla = randomizeStockPrice(tsla);
             amzn = randomizeStockPrice(amzn);
-            brka = randomizeStockPrice(brka);
             const message = new MessageEvent('test', { data });
             this.onMessageFromMarket(message);
-        }, 1000)
+        }, 1100)
+
+        setInterval(() => {
+            const data = JSON.stringify({
+                data: [
+                    { p: aapl, s: 'AAPL', t: Number((new Date())) },
+                    { p: msft, s: 'MSFT', t: Number((new Date())) },
+                ]
+            })
+            aapl = randomizeStockPrice(aapl);
+            msft = randomizeStockPrice(msft);
+            tsla = randomizeStockPrice(tsla);
+            amzn = randomizeStockPrice(amzn);
+            const message = new MessageEvent('test', { data });
+            this.onMessageFromMarket(message);
+        }, 700)
     }
 
     async tickers(query: ITickersQueryDTO): Promise<ITickers> {
