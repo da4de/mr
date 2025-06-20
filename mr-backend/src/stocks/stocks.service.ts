@@ -60,6 +60,7 @@ export class StocksService {
     }
 
     onMessageFromMarket = (event: MessageEvent) => {
+        console.log('Message from stockmarkt', event.data);
         const { data = [] } = JSON.parse(event.data);
         data.forEach(({ s, p, t }: { s: string, p: number, t: number }) => {
             this.subscriptions[s]?.forEach(client => {
@@ -77,6 +78,7 @@ export class StocksService {
             }
         } else {
             this.socket.send(JSON.stringify({ type: 'subscribe', symbol }))
+            console.log('Message to stockmarkt: subscribe', symbol);
             if (this.subscriptions[symbol]) {
                 this.subscriptions[symbol].push(client);
             } else {
@@ -92,9 +94,11 @@ export class StocksService {
             this.subscriptions[symbol] = this.subscriptions[symbol].filter(subscribedClient => subscribedClient !== client)
             if (!this.subscriptions[symbol].length) {
                 this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
+                console.log('Message to stockmarkt: unsubscribe', symbol);
             }
         } else {
             this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
+            console.log('Message to stockmarkt: unsubscribe', symbol);
         }
     }
 
@@ -103,6 +107,7 @@ export class StocksService {
             this.subscriptions[symbol] = this.subscriptions[symbol].filter(subscribedClient => subscribedClient !== client)
             if (!this.subscriptions[symbol].length) {
                 this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
+                console.log('Message to stockmarkt: unsubscribe', symbol);
             }
         })
     }
