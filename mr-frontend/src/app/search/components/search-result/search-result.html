@@ -1,3 +1,3 @@
-<div *ngIf="searchResults$ | async as results">
-    <tickers-list [tickers]="results" [actions]="actions" />
+<div *ngIf="searchResults$ | async as searchResults">
+    <tickers-list [tickers]="searchResults" [actions]="actions" emptyMessage="Search results will appear here."/>
 </div>

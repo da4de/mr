@@ -11,7 +11,7 @@ import { SearchTickerParams } from "./search.model";
     imports: [ButtonModule, InputTextModule, FormsModule]
 })
 export class SearchTicker {
-    searchParams = new SearchTickerParams('MSFT')
+    searchParams = new SearchTickerParams('')
 
     constructor(private searchService: SearchService) { }
 

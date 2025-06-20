@@ -1,6 +1,6 @@
 <section>
     <h3>Favorite stocks</h3>
-    <div *ngIf="favorites$ | async as results" class="search-result">
-        <tickers-list [tickers]="results" emptyMessage="Your favorite stocks will appear here." [actions]="actions" />
+    <div *ngIf="favorites$ | async as favorites">
+        <tickers-list [tickers]="favorites" [actions]="actions" emptyMessage="Your favorite stocks will appear here." />
     </div>
 </section>

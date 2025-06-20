@@ -28,10 +28,7 @@ export class PricesService {
     onWebSocketServiceMessage = (message: any) => {
         if (message?.type === 'price') {
             const { ticker, price, time } = message;
-
-            const actualPrice = this.actualPriceSubject.getValue();
-            actualPrice[ticker] = { price: price, time: time }
-            this.actualPriceSubject.next(actualPrice);
+            this.actualPriceSubject.next({[ticker]: { price: price, time: time }});
         }
     }
 

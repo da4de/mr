@@ -14,6 +14,7 @@ export class StocksService {
     subscriptions: { [key: string]: WebSocket[] } = {}
 
     constructor(private readonly httpService: HttpService) {
+        /* TODO get process env variables from config service */
         this.socket = new WebSocket(`${process.env.FINNHUB_WS_ADDRESS}?token=${process.env.FINNHUB_API_KEY}`)
         this.socket.addEventListener('open', (event) => {
             console.log(`${process.env.FINNHUB_WS_ADDRESS} Trading Socket Ready!`);

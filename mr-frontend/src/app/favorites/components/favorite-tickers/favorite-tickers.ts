@@ -1,9 +1,10 @@
 import { Component } from "@angular/core";
-import { Observable, Subscription } from "rxjs";
+import { Observable } from "rxjs";
 import { Ticker } from "../../../search/components/search-ticker/search.model";
 import { AsyncPipe, NgIf } from "@angular/common";
 import { TickerList } from "../../../common/components/tickers-list/tickers-list";
 import { FavoriteService } from "../../favorites.service";
+import { PrimeIcons } from "primeng/api";
 
 @Component({
     selector: 'favorite-tickers',
@@ -15,8 +16,8 @@ export class FavoriteTickers {
 
     actions = [
         {
-            icon: 'pi pi-chart-line',
-            action: (item: Ticker) => {
+            icon: PrimeIcons.CHART_LINE,
+            onAction: (item: Ticker) => {
                 if (this.favoriteService.isChartTicker(item.symbol)) {
                     this.favoriteService.unsubscribe(item.symbol);
                 } else {
@@ -27,15 +28,18 @@ export class FavoriteTickers {
                 !this.favoriteService.isChartTicker(item.symbol)
         },
         {
-            icon: 'pi pi-trash',
-            action: (item: Ticker) => {
+            icon: PrimeIcons.TRASH,
+            onAction: (item: Ticker) => {
                 this.favoriteService.delete(item.symbol);
-            }
-        }];
+            },
+            outlined: true,
+        }
+    ];
 
     constructor(private favoriteService: FavoriteService) { }
 
     ngOnInit() {
-        this.favorites$ = this.favoriteService.favorites$
+        /* TODO simplify*/
+        this.favorites$ = this.favoriteService.getFavorities()
     }
 }

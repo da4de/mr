@@ -69,7 +69,15 @@ export class Charts {
     plugins: {
       legend: {
         display: true,
-        position: 'top'
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'line',
+          font: {
+            size: 10
+          },
+          padding: 6
+        }
       }
     }
   };

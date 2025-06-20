@@ -3,11 +3,13 @@ import { ButtonModule } from 'primeng/button';
 import { Ticker } from "../../../search/components/search-ticker/search.model";
 import { NgClass, NgFor, NgIf } from "@angular/common";
 import { DataViewModule } from "primeng/dataview";
+import { Actions } from "../actions/actions";
+import { Action } from "../actions/actions.model";
 
 @Component({
     selector: 'tickers-list',
     templateUrl: 'tickers-list.html',
-    imports: [NgFor, NgIf, NgClass, DataViewModule, ButtonModule]
+    imports: [NgFor, NgIf, NgClass, DataViewModule, ButtonModule, Actions]
 })
 export class TickerList {
     @Input()
@@ -15,9 +17,5 @@ export class TickerList {
     @Input()
     emptyMessage: string = '';
     @Input()
-    actionIcon: string = 'pi pi-star'
-    @Input()
-    onAction: (item: Ticker) => void = () => {};
-    @Input()
-    actions: {icon: string, action: (item: Ticker) => void, outlined?: (item: Ticker) => boolean}[] = []
+    actions: Action[] = []
 }

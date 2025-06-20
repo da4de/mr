@@ -3,7 +3,7 @@ import { BehaviorSubject, map, pairwise } from "rxjs";
 import { Ticker } from "../search/components/search-ticker/search.model";
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
-  return new Set([...a].filter(x => !b.has(x)));
+    return new Set([...a].filter(x => !b.has(x)));
 }
 
 @Injectable({
@@ -65,6 +65,10 @@ export class FavoriteService {
         return !!~this.favoritesSubject.getValue().findIndex(item => item.symbol === ticker)
     }
 
+    getFavorities() {
+        return this.favoritesSubject.asObservable();
+    }
+
     subscribe(ticker: Ticker['symbol']) {
         const subscriptions = new Set(this.subscriptionsSubject.getValue())
         subscriptions.add(ticker)
@@ -100,6 +104,6 @@ export class FavoriteService {
     }
 
     isChartTicker(ticker: Ticker['symbol']) {
-        return  this.subscriptionsSubject.getValue().has(ticker)
+        return this.subscriptionsSubject.getValue().has(ticker)
     }
 }

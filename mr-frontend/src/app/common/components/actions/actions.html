@@ -1,0 +1,3 @@
+<p-button *ngFor="let action of actions" [icon]="action.icon" (onClick)="action.onAction(item)"
+    [outlined]="typeof action.outlined === 'function' ? action.outlined(item) : !!action.outlined" [rounded]="true"
+    severity="help" />
