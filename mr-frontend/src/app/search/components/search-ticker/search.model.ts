@@ -10,6 +10,5 @@ export class Ticker {
         public symbol: string,
         public displaySymbol: string,
         public description: string,
-        public showInChart?: boolean,
     ) { }
 }

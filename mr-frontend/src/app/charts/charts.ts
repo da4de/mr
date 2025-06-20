@@ -1,44 +1,17 @@
 import { Component, ViewChild } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { FavoriteService } from '../favorites/favorites.service';
-import { Observable } from 'rxjs';
-import { PricesService } from '../prices/prices.service';
-import { Ticker } from '../search/components/search-ticker/search.model';
+import { ITickerPrices, PricesService } from '../prices/prices.service';
 import { ChartComponent, ChartData, ChartOptions } from 'chart.js';
 
-function getHHMMSS(date: Date) {
-  return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+function generateColor(index: number): string {
+  const colors = [
+    '#3366CC', '#DC3912', '#FF9900', '#109618',
+    '#990099', '#3B3EAC', '#0099C6', '#DD4477',
+    '#66AA00', '#B82E2E', '#316395', '#994499'
+  ];
+  return colors[index % colors.length];
 }
-
-function getHHMM(date: Date) {
-  return `${date.getHours()}:${date.getMinutes()}`
-}
-
-function getSecLabels(startTime: Date, count: number) {
-  const result = [getHHMMSS(startTime)]
-  for (let i = 1; i <= count; i++) {
-    result.push(getHHMMSS(new Date(Number(startTime) + i * 1000)))
-  }
-  return result
-}
-
-function getMinLabels(startTime: Date, count: number) {
-  const result = [getHHMM(startTime)]
-  for (let i = 1; i <= count; i++) {
-    result.push(getHHMM(new Date(Number(startTime) + i * 60000)))
-  }
-  return result
-}
-
-function get15MinLabels(startTime: Date, count: number) {
-  const result = [getHHMM(startTime)]
-  for (let i = 1; i <= count; i++) {
-
-    result.push(getHHMM(new Date(Number(startTime) + 15 * i * 60000)))
-  }
-  return result
-}
-
 
 @Component({
   selector: 'charts',
@@ -47,100 +20,23 @@ function get15MinLabels(startTime: Date, count: number) {
 })
 export class Charts {
   @ViewChild('chart') chartComponent!: ChartComponent;
-  @ViewChild('chart1') chartComponent1!: ChartComponent;
-  @ViewChild('chart15') chartComponent15!: ChartComponent;
-  private chartTickers$: Observable<Ticker[]>
-
-  constructor(private favoriteService: FavoriteService, private pricesService: PricesService) {
-    this.chartTickers$ = this.favoriteService.getChartTickers();
-  }
-
-  ngOnInit() {
-    this.chartTickers$.subscribe(chartTickers => {
-      const chartTickersSymbols = chartTickers.map(ticker => ticker.symbol);
-      /* subscribe */
-      chartTickersSymbols.forEach(symbol => {
-        this.pricesService.subscribe(symbol);
-      })
-      /* unsubsribe */
-      this.pricesService.getSubscriptions().filter(symbol => !chartTickersSymbols.includes(symbol)).forEach(symbol => {
-        this.pricesService.unsubscribe(symbol);
-      })
-    })
-
-    this.pricesService.getActualPrice().subscribe(prices => {
-      for (const ticker in prices) {
-        const tickerData = this.data.datasets.find(item => item.label === ticker)
-        if (tickerData) {
-          tickerData.data.push({ x: prices[ticker].time, y: prices[ticker].price });
-        } else {
-          this.data.datasets.push({
-            label: ticker,
-            data: [
-              { x: prices[ticker].time, y: prices[ticker].price }
-            ],
-          })
-        }
-      }
-
-      (this.chartComponent as any)?.chart?.update()
-    })
-
-    this.pricesService.getMinutePrice().subscribe(prices => {
-      console.log('minAvgPrice', prices);
-
-      for (const ticker in prices) {
-        const tickerData = this.data1min.datasets.find(item => item.label === ticker)
-        if (tickerData) {
-          tickerData.data.push({ x: Date.now(), y: prices[ticker].price });
-        } else {
-          this.data1min.datasets.push({
-            label: ticker,
-            data: [
-              { x: Date.now(), y: prices[ticker].price }
-            ],
-          })
-        }
-      }
-
-      (this.chartComponent1 as any).chart.update()
-    })
-
-    this.pricesService.get15MinutenPrices().subscribe(prices => {
-      console.log('get15MinutenPrices', prices);
-
-      for (const ticker in prices) {
-        const tickerData = this.data15min.datasets.find(item => item.label === ticker)
-        if (tickerData) {
-          tickerData.data.push({ x: Date.now(), y: prices[ticker].price });
-        } else {
-          this.data15min.datasets.push({
-            label: ticker,
-            data: [
-              { x: Date.now(), y: prices[ticker].price }
-            ],
-          })
-        }
-      }
-
-      (this.chartComponent15 as any).chart.update()
-    })
-  }
-
-
+  @ViewChild('chart10sec') chartComponent10sec!: ChartComponent;
+  @ViewChild('chart1min') chartComponent1min!: ChartComponent;
+  @ViewChild('chart15min') chartComponent15min!: ChartComponent;
 
   data: ChartData<'line'> = {
-    labels: getSecLabels(new Date(), 60),
+    datasets: []
+  }
+
+  data10sec: ChartData<'line'> = {
     datasets: []
   }
 
   data1min: ChartData<'line'> = {
-    labels: getMinLabels(new Date(), 15),
     datasets: []
   }
 
   data15min: ChartData<'line'> = {
-    labels: get15MinLabels(new Date(), 3),
     datasets: []
   }
 
@@ -150,14 +46,17 @@ export class Charts {
       x: {
         type: 'time',
         time: {
-          unit: 'minute'
+          unit: 'minute',
+          displayFormats: {
+            minute: 'HH:mm',
+            hour: 'HH:mm'
+          }
         },
         title: {
           display: true,
           text: 'Time'
         },
         min: Number(Date.now()),
-        //max: Number(Date.now() + 60000)
       },
       y: {
         title: {
@@ -174,4 +73,47 @@ export class Charts {
       }
     }
   };
+
+  constructor(private favoriteService: FavoriteService, private pricesService: PricesService) {
+    this.favoriteService.subscriptions().subscribe(subscribed => {
+      subscribed.forEach(symbol => this.pricesService.subscribe(symbol));
+    })
+
+    this.favoriteService.subscribed().subscribe(subscribed => {
+      subscribed.forEach(symbol => this.pricesService.subscribe(symbol));
+    })
+
+    this.favoriteService.unsubscribed().subscribe(unsubscribed => {
+      unsubscribed.forEach(symbol => this.pricesService.unsubscribe(symbol));
+    })
+    
+  }
+
+  onPriceChanged = (chartComponent: ChartComponent) => (prices: ITickerPrices) => {
+    const chartData: ChartData = (chartComponent as any)?.chart?.data
+
+    for (const ticker in prices) {
+      const tickerData = chartData.datasets.find(item => item.label === ticker)
+      if (tickerData) {
+        tickerData.data.push({ x: prices[ticker].time, y: prices[ticker].price });
+      } else {
+        chartData.datasets.push({
+          label: ticker,
+          data: [
+            { x: prices[ticker].time, y: prices[ticker].price }
+          ],
+          borderColor: generateColor(chartData.datasets.length)
+        })
+      }
+    }
+
+    (chartComponent as any)?.chart?.update()
+  }
+
+  ngAfterViewInit() {
+    this.pricesService.getActualPrice().subscribe(this.onPriceChanged(this.chartComponent))
+    this.pricesService.getAveragePrice(10000).subscribe(this.onPriceChanged(this.chartComponent10sec))
+    this.pricesService.getAveragePrice(60000).subscribe(this.onPriceChanged(this.chartComponent1min))
+    this.pricesService.getAveragePrice(15 * 60000).subscribe(this.onPriceChanged(this.chartComponent15min))
+  }
 }

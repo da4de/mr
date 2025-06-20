@@ -16,7 +16,7 @@ export class StocksService {
     constructor(private readonly httpService: HttpService) {
         this.socket = new WebSocket(`${process.env.FINNHUB_WS_ADDRESS}?token=${process.env.FINNHUB_API_KEY}`)
         this.socket.addEventListener('open', (event) => {
-            console.log('StocksSocket Ready!');
+            console.log(`${process.env.FINNHUB_WS_ADDRESS} Trading Socket Ready!`);
         })
         this.socket.addEventListener('message', this.onMessageFromMarket);
 
@@ -114,50 +114,40 @@ export class StocksService {
     }
 
     subscribe(client: WebSocket, symbol: string) {
-        console.log('subscribe', symbol)
         const isSubscriptionExist = this.subscriptions[symbol] && Array.isArray(this.subscriptions[symbol]) && !!this.subscriptions[symbol].length;
 
         if (isSubscriptionExist) {
             if (!this.subscriptions[symbol].includes(client)) {
-                console.log('new client')
                 this.subscriptions[symbol].push(client);
             }
         } else {
             this.socket.send(JSON.stringify({ type: 'subscribe', symbol }))
-            console.log('subscribe for', symbol)
             if (this.subscriptions[symbol]) {
-                console.log('new client')
                 this.subscriptions[symbol].push(client);
             } else {
-                console.log('new client')
                 this.subscriptions[symbol] = [client];
             }
         }
     }
 
     unsubscribe(client: WebSocket, symbol: string) {
-        console.log('unsubscribe', symbol)
         const isClientSubscriptionExist = this.subscriptions[symbol] && Array.isArray(this.subscriptions[symbol]) && this.subscriptions[symbol].includes(client);
 
         if (isClientSubscriptionExist) {
-            this.subscriptions[symbol] = this.subscriptions[symbol].filter(client => client !== client)
+            this.subscriptions[symbol] = this.subscriptions[symbol].filter(subscribedClient => subscribedClient !== client)
             if (!this.subscriptions[symbol].length) {
                 this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
-                console.log('unsubscribe for', symbol)
             }
         } else {
             this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
-            console.log('unsubscribe for', symbol)
         }
     }
 
     unsubscribeAll(client: WebSocket) {
-        console.log('unsubscribeAll')
         Object.keys(this.subscriptions).forEach(symbol => {
             this.subscriptions[symbol] = this.subscriptions[symbol].filter(subscribedClient => subscribedClient !== client)
             if (!this.subscriptions[symbol].length) {
                 this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
-                console.log('unsubscribe for', symbol)
             }
         })
     }

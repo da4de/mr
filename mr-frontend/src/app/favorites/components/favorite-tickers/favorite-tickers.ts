@@ -18,9 +18,9 @@ export class FavoriteTickers {
             icon: 'pi pi-chart-line',
             action: (item: Ticker) => {
                 if (this.favoriteService.isChartTicker(item.symbol)) {
-                    this.favoriteService.deleteFromChart(item);
+                    this.favoriteService.unsubscribe(item.symbol);
                 } else {
-                    this.favoriteService.addToChart(item);
+                    this.favoriteService.subscribe(item.symbol);
                 }
             },
             outlined: (item: Ticker) => 
