@@ -17,3 +17,5 @@ docker compose up --build
 The application will be available at:<br>
 Frontend: http://localhost:8080<br>
 Backend API: http://localhost:3000<br>
+
+![Interface Screenshot](./interface.png)
