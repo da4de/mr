@@ -3,6 +3,7 @@ import { StatusService } from "./status.service";
 import { IMarketStatus } from "./status.model";
 import { NgIf } from "@angular/common";
 
+
 @Component({
     selector: 'market-status',
     templateUrl: 'status.html',
@@ -16,5 +17,9 @@ export class MarketStatus {
         this.statusService.getMarketStatus().subscribe(status => {
             this.status = status;
         })
+    }
+
+    onSimulationClick() {
+        this.statusService.generation().subscribe();
     }
 }

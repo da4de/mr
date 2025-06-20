@@ -16,4 +16,9 @@ export class StocksController {
     async status(@Query() query: IMarketStatusQueryDTO) {
         return this.stocksService.status(query)
     }
+
+    @Get('generation')
+    async generation() {
+        return this.stocksService.generation()
+    }
 }

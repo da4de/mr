@@ -8,11 +8,16 @@ import { ExchangeEnum, IMarketStatus, IMarketStatusQuery } from "./status.model"
 })
 export class StatusService {
     private marketStatusUrl = '/stocks/status'
+    private generationUrl = '/stocks/generation'
 
     constructor(private http: HttpClient) { }
 
     getMarketStatus(query?: IMarketStatusQuery): Observable<IMarketStatus> {
         const params = new HttpParams().set('exchange', query?.exchange || ExchangeEnum.US)
-        return this.http.get<IMarketStatus>(`${this.marketStatusUrl}`, { params })
+        return this.http.get<IMarketStatus>(this.marketStatusUrl, { params })
+    }
+
+    generation() {
+        return this.http.get(this.generationUrl)
     }
 }

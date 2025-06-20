@@ -19,54 +19,11 @@ export class StocksService {
             console.log(`${process.env.FINNHUB_WS_ADDRESS} Trading Socket Ready!`);
         })
         this.socket.addEventListener('message', this.onMessageFromMarket);
-
-        /* TODO Testing in holiday*/
-        let aapl = 196.58
-        let msft = 480.24
-        let tsla = 322.05
-        let amzn = 212.52
-        let brka = 728200.52
-        function randomizeStockPrice(prevPrice: number, volatility = 0.01): number {
-                const changePercent = (Math.random() * 2 - 1) * volatility; // e.g., between -1% and +1%
-                const nextPrice = prevPrice * (1 + changePercent);
-                return parseFloat(nextPrice.toFixed(2)); // round to 2 decimals
-            }
-
-        setInterval(() => {
-            const data = JSON.stringify({
-                data: [
-                    { p: tsla, s: 'TSLA', t: Number((new Date())) },
-                    { p: amzn, s: 'AMZN', t: Number((new Date())) },
-                ]
-            })
-            aapl = randomizeStockPrice(aapl);
-            msft = randomizeStockPrice(msft);
-            tsla = randomizeStockPrice(tsla);
-            amzn = randomizeStockPrice(amzn);
-            const message = new MessageEvent('test', { data });
-            this.onMessageFromMarket(message);
-        }, 1100)
-
-        setInterval(() => {
-            const data = JSON.stringify({
-                data: [
-                    { p: aapl, s: 'AAPL', t: Number((new Date())) },
-                    { p: msft, s: 'MSFT', t: Number((new Date())) },
-                ]
-            })
-            aapl = randomizeStockPrice(aapl);
-            msft = randomizeStockPrice(msft);
-            tsla = randomizeStockPrice(tsla);
-            amzn = randomizeStockPrice(amzn);
-            const message = new MessageEvent('test', { data });
-            this.onMessageFromMarket(message);
-        }, 700)
     }
 
     async tickers(query: ITickersQueryDTO): Promise<ITickers> {
         /* TODO get process env variables from config service */
         const url = `${process.env.FINNHUB_ADDRESS}/api/v1/search`;
-        //console.log('StocksService:tickers url', url, query, process.env.FINNHUB_API_KEY)
         const { data } = await firstValueFrom(
             this.httpService.get<ITickers>(url,
                 {
@@ -103,12 +60,10 @@ export class StocksService {
     }
 
     onMessageFromMarket = (event: MessageEvent) => {
-        //console.log('Message from Market ', event.data, JSON.parse(event.data));
         const { data = [] } = JSON.parse(event.data);
         data.forEach(({ s, p, t }: { s: string, p: number, t: number }) => {
             this.subscriptions[s]?.forEach(client => {
-                //console.log('client send message', { ticker: s, price: p, time: t })
-                client.send(JSON.stringify({type: 'price', ticker: s, price: p, time: t }))
+                client.send(JSON.stringify({ type: 'price', ticker: s, price: p, time: t }))
             })
         })
     }
@@ -150,5 +105,52 @@ export class StocksService {
                 this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
             }
         })
+    }
+
+    genId1: NodeJS.Timeout
+    genId2: NodeJS.Timeout
+    generation() {
+        clearInterval(this.genId1);
+        clearInterval(this.genId2);
+        /* TODO Testing in holiday*/
+        let aapl = 196.58
+        let msft = 480.24
+        let tsla = 322.05
+        let amzn = 212.52
+        function randomizeStockPrice(prevPrice: number, volatility = 0.01): number {
+            const changePercent = (Math.random() * 2 - 1) * volatility; // e.g., between -1% and +1%
+            const nextPrice = prevPrice * (1 + changePercent);
+            return parseFloat(nextPrice.toFixed(2)); // round to 2 decimals
+        }
+
+        this.genId1 = setInterval(() => {
+            const data = JSON.stringify({
+                data: [
+                    { p: tsla, s: 'TSLA', t: Number((new Date())) },
+                    { p: amzn, s: 'AMZN', t: Number((new Date())) },
+                ]
+            })
+            aapl = randomizeStockPrice(aapl);
+            msft = randomizeStockPrice(msft);
+            tsla = randomizeStockPrice(tsla);
+            amzn = randomizeStockPrice(amzn);
+            const message = new MessageEvent('test', { data });
+            this.onMessageFromMarket(message);
+        }, 1100)
+
+        this.genId1 = setInterval(() => {
+            const data = JSON.stringify({
+                data: [
+                    { p: aapl, s: 'AAPL', t: Number((new Date())) },
+                    { p: msft, s: 'MSFT', t: Number((new Date())) },
+                ]
+            })
+            aapl = randomizeStockPrice(aapl);
+            msft = randomizeStockPrice(msft);
+            tsla = randomizeStockPrice(tsla);
+            amzn = randomizeStockPrice(amzn);
+            const message = new MessageEvent('test', { data });
+            this.onMessageFromMarket(message);
+        }, 700)
     }
 }
