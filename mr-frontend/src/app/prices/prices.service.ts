@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { WebSocketService } from "../websocket/websocket.service";
+import { WebSocketService } from "../common/services/websocket.service";
 import { Ticker } from "../search/components/search-ticker/search.model";
 import { BehaviorSubject, bufferTime, map, Observable } from "rxjs";
 
