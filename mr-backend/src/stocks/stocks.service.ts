@@ -118,7 +118,7 @@ export class StocksService {
     generation() {
         clearInterval(this.genId1);
         clearInterval(this.genId2);
-        /* TODO Testing in holiday*/
+        /* TODO Testing in holiday */
         let aapl = 196.58
         let msft = 480.24
         let tsla = 322.05

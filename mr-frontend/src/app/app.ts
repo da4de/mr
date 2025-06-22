@@ -1,13 +1,19 @@
 import { Component } from '@angular/core';
-import { SearchTicker } from './search/components/search-ticker/search-ticker';
-import { SearchResult } from './search/components/search-result/search-result';
-import { FavoriteTickers } from "./favorites/components/favorite-tickers";
-import { MarketStatus } from "./status/status";
-import { Charts } from './charts/charts';
+import { StockSearchFormComponent } from './features/stock-search-form/stock-search-form.component';
+import { SearchResultComponent } from './features/search-result/search-result.component';
+import { MarketStatusComponent } from './features/market-status/market-status.component';
+import { FavoriteStocksComponent } from './features/favorites/favorite-stocks.component';
+import { ChartsComponent } from './features/charts/charts.component';
 
 @Component({
   selector: 'app-root',
-  imports: [SearchTicker, SearchResult, FavoriteTickers, MarketStatus, Charts],
+  imports: [
+    StockSearchFormComponent,
+    SearchResultComponent,
+    MarketStatusComponent,
+    FavoriteStocksComponent,
+    ChartsComponent
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

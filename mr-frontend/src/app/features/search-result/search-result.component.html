@@ -1,0 +1,3 @@
+<div *ngIf="searchResults$ | async as searchResults">
+    <stocks-list [stocks]="searchResults" [actions]="actions" emptyMessage="Search results will appear here."/>
+</div>
