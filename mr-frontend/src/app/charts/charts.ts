@@ -1,17 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
-import { FavoriteService } from '../favorites/favorites.service';
-import { ITickerPrices, PricesService } from '../prices/prices.service';
+import { ITickerPrices, PricesService } from '../services/prices.service';
 import { ChartComponent, ChartData, ChartOptions } from 'chart.js';
-
-function generateColor(index: number): string {
-  const colors = [
-    '#3366CC', '#DC3912', '#FF9900', '#109618',
-    '#990099', '#3B3EAC', '#0099C6', '#DD4477',
-    '#66AA00', '#B82E2E', '#316395', '#994499'
-  ];
-  return colors[index % colors.length];
-}
+import { SubscriptionsService } from '../services/subscriptions.service';
+import { generateColor } from '../common/utils';
 
 @Component({
   selector: 'charts',
@@ -82,16 +74,16 @@ export class Charts {
     }
   };
 
-  constructor(private favoriteService: FavoriteService, private pricesService: PricesService) {
-    this.favoriteService.subscriptions().subscribe(subscribed => {
+  constructor(private subscriptionsService: SubscriptionsService, private pricesService: PricesService) {
+    this.subscriptionsService.subsriptions$.subscribe(subscribed => {
       subscribed.forEach(symbol => this.pricesService.subscribe(symbol));
     })
 
-    this.favoriteService.subscribed().subscribe(subscribed => {
+    this.subscriptionsService.subscribed().subscribe(subscribed => {
       subscribed.forEach(symbol => this.pricesService.subscribe(symbol));
     })
 
-    this.favoriteService.unsubscribed().subscribe(unsubscribed => {
+    this.subscriptionsService.unsubscribed().subscribe(unsubscribed => {
       unsubscribed.forEach(symbol => this.pricesService.unsubscribe(symbol));
     })
     

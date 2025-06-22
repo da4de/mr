@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { SearchService } from "../../search.service";
+import { SearchService } from "../../../services/search.service";
 import { FormsModule } from "@angular/forms";
 import { SearchTickerParams } from "./search.model";
 

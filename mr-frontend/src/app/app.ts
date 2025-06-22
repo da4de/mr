@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { SearchTicker } from './search/components/search-ticker/search-ticker';
 import { SearchResult } from './search/components/search-result/search-result';
-import { FavoriteTickers } from "./favorites/components/favorite-tickers/favorite-tickers";
+import { FavoriteTickers } from "./favorites/components/favorite-tickers";
 import { MarketStatus } from "./status/status";
 import { Charts } from './charts/charts';
 

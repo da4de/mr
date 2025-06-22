@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { StatusService } from "./status.service";
+import { StatusService } from "../services/market-status.service";
 import { IMarketStatus } from "./status.model";
 import { NgIf } from "@angular/common";
 

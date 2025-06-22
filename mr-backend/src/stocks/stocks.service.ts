@@ -22,7 +22,7 @@ export class StocksService {
         this.socket.addEventListener('message', this.onMessageFromMarket);
     }
 
-    async tickers(query: ITickersQueryDTO): Promise<ITickers> {
+    async search(query: ITickersQueryDTO): Promise<ITickers> {
         /* TODO get process env variables from config service */
         const url = `${process.env.FINNHUB_ADDRESS}/api/v1/search`;
         const { data } = await firstValueFrom(

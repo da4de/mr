@@ -7,9 +7,9 @@ import { IMarketStatusQueryDTO } from "./dto/market.status.query.dto";
 export class StocksController {
     constructor(private stocksService: StocksService) { }
 
-    @Get('tickers')
-    async tickers(@Query() query: ITickersQueryDTO) {
-        return this.stocksService.tickers(query)
+    @Get('search')
+    async search(@Query() query: ITickersQueryDTO) {
+        return this.stocksService.search(query)
     }
 
     @Get('status')

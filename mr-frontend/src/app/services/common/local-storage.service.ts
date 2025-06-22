@@ -1,9 +1,7 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class LocalStorageService {
     private localStorageWatcher = new Map<string, BehaviorSubject<string | null>>();
 
@@ -21,7 +19,7 @@ export class LocalStorageService {
             const curValue = this.getItem(key);
             this.localStorageWatcher.set(key, new BehaviorSubject(curValue))
         }
-        return this.localStorageWatcher.get(key)?.asObservable();
+        return this.localStorageWatcher.get(key)!;
     }
 
     private informWatcher(key: string, value: string | null) {

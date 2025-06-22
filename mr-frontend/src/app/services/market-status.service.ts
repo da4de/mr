@@ -1,11 +1,9 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
-import { ExchangeEnum, IMarketStatus, IMarketStatusQuery } from "./status.model";
+import { ExchangeEnum, IMarketStatus, IMarketStatusQuery } from "../status/status.model";
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class StatusService {
     private marketStatusUrl = '/stocks/status'
     private generationUrl = '/stocks/generation'

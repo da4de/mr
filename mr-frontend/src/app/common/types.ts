@@ -1,4 +1,4 @@
-export interface ApiResponse<ResultsType> {
+export interface ApiCountedResponse<ResultsType> {
     count: number,
     result: ResultsType,
 }

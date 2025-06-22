@@ -1,10 +1,10 @@
 import { Component } from "@angular/core";
-import { SearchService } from "../../search.service";
+import { SearchService } from "../../../services/search.service";
 import { Observable } from "rxjs";
 import { Ticker } from "../search-ticker/search.model";
 import { AsyncPipe, NgIf } from "@angular/common";
 import { TickerList } from "../../../common/components/tickers-list/tickers-list";
-import { FavoriteService } from "../../../favorites/favorites.service";
+import { FavoriteService } from "../../../services/favorites.service";
 import { PrimeIcons } from "primeng/api";
 import { Action } from "../../../common/components/actions/actions.model";
 
@@ -14,15 +14,13 @@ import { Action } from "../../../common/components/actions/actions.model";
     imports: [NgIf, AsyncPipe, TickerList],
 })
 export class SearchResult {
-    searchResults$!: Observable<Ticker[]>;
-
     actions: Action[] = [{
         icon: PrimeIcons.STAR,
         onAction: (item: Ticker) => {
             if (this.favoriteService.isFavorite(item.symbol)) {
-                this.favoriteService.delete(item.symbol)
+                this.favoriteService.deleteFavorite(item.symbol)
             } else {
-                this.favoriteService.add(item)
+                this.favoriteService.addFavorite(item)
             }
             
         },
@@ -32,8 +30,7 @@ export class SearchResult {
 
     constructor(private searchService: SearchService, private favoriteService: FavoriteService) { }
 
-    ngOnInit() {
-        /* TODO simplify*/
-        this.searchResults$ = this.searchService.getSearchResults();
+    get searchResults$() {
+        return this.searchService.searchResults$;
     }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { WebSocketService } from "../common/services/websocket.service";
+import { WebSocketService } from "./common/websocket.service";
 import { Ticker } from "../search/components/search-ticker/search.model";
 import { BehaviorSubject, bufferTime, map, Observable } from "rxjs";
 
@@ -11,9 +11,7 @@ export interface ITickerAvgPrice {
     [key: Ticker['symbol']]: { price: number }
 }
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class PricesService {
     private subscriptions: Set<Ticker['symbol']> = new Set()
 
@@ -28,7 +26,7 @@ export class PricesService {
     onWebSocketServiceMessage = (message: any) => {
         if (message?.type === 'price') {
             const { ticker, price, time } = message;
-            this.actualPriceSubject.next({[ticker]: { price: price, time: time }});
+            this.actualPriceSubject.next({ [ticker]: { price: price, time: time } });
         }
     }
 
