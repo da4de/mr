@@ -49,13 +49,12 @@ export class ChartsComponent implements AfterViewInit, OnDestroy {
         title: {
           display: true,
           text: 'Time'
-        },
-        min: Number(Date.now()),
+        }
       },
       y: {
         title: {
           display: true,
-          text: 'Price'
+          text: 'Price, USD'
         },
         beginAtZero: false
       }
@@ -99,25 +98,31 @@ export class ChartsComponent implements AfterViewInit, OnDestroy {
    * @param chartComponent The chart component to update
    * @returns A function that handles price updates for the specified chart
    */
-  onPriceChanged = (chartComponent: ChartComponent) => (prices: StockPrices) => {
-    const chartData: ChartData = (chartComponent as any)?.chart?.data
+  onPriceChanged = (chartComponent: ChartComponent) => {
+    let lastTime = Date.now();
+    return function (prices: StockPrices) {
+      const chartData: ChartData<'line', { x: number, y: number }[]> = { datasets: [] } = (chartComponent as any)?.chart?.data
 
-    for (const ticker in prices) {
-      const tickerData = chartData.datasets.find(item => item.label === ticker)
-      if (tickerData) {
-        tickerData.data.push({ x: prices[ticker].time, y: prices[ticker].price });
-      } else {
-        chartData.datasets.push({
-          label: ticker,
-          data: [
-            { x: prices[ticker].time, y: prices[ticker].price }
-          ],
-          borderColor: generateColor(chartData.datasets.length)
-        })
+      for (const ticker in prices) {
+        const tickerData = chartData.datasets.find(item => item.label === ticker)
+        if (tickerData) {
+          tickerData.data.push({ x: prices[ticker].time, y: prices[ticker].price });
+          /* Stock prices sometimes arrive unsorted, so we explicitly sort them */
+          if (lastTime > prices[ticker].time) {
+             tickerData.data.sort((a, b) => a.x - b.x)
+          }
+        } else {
+          chartData.datasets.push({
+            label: ticker,
+            data: [{ x: prices[ticker].time, y: prices[ticker].price }],
+            borderColor: generateColor(chartData.datasets.length)
+          })
+        }
+        lastTime = prices[ticker].time;
       }
-    }
 
-    (chartComponent as any)?.chart?.update()
+      (chartComponent as any)?.chart?.update()
+    }
   }
 
   /**
