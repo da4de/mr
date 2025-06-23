@@ -15,6 +15,6 @@ import { ChartsComponent } from './features/charts/charts.component';
     ChartsComponent
   ],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App { }

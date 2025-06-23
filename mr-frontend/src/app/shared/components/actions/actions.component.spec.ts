@@ -1,25 +1,23 @@
-/* TODO create test for component*/
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-// import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActionsComponent } from './actions.component';
 
-// import { TestCompComponent } from './test-comp.component';
+describe('ActionsComponent', () => {
+  let component: ActionsComponent;
+  let fixture: ComponentFixture<ActionsComponent>;
 
-// describe('TestCompComponent', () => {
-//   let component: TestCompComponent;
-//   let fixture: ComponentFixture<TestCompComponent>;
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ActionsComponent]
+    })
+    .compileComponents();
 
-//   beforeEach(async () => {
-//     await TestBed.configureTestingModule({
-//       imports: [TestCompComponent]
-//     })
-//     .compileComponents();
+    fixture = TestBed.createComponent(ActionsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
 
-//     fixture = TestBed.createComponent(TestCompComponent);
-//     component = fixture.componentInstance;
-//     fixture.detectChanges();
-//   });
-
-//   it('should create', () => {
-//     expect(component).toBeTruthy();
-//   });
-// });
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
