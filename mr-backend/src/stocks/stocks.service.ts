@@ -1,124 +1,83 @@
 import { Injectable } from "@nestjs/common";
-import { ITickers } from "./dto/tickers.result.dto";
-import { ITickersQueryDTO } from "./dto/tickers.query.dto";
-import { HttpService } from "@nestjs/axios";
-import { catchError, firstValueFrom, Timestamp } from "rxjs";
-import { AxiosError } from "axios";
-import { IMarketStatusQueryDTO } from "./dto/market.status.query.dto";
-import { IMarketStatus } from "./dto/market.status.result.dto";
+import { StocksSearchResult } from "./dto/stocks-search.response";
+import { StocksSearchQueryDTO } from "./dto/stocks-search.query.dto";
+import { MarketStatusQueryDTO } from "./dto/market-status.query.dto";
+import { MarketStatus } from "./dto/market-status.response";
+import { FinnhubService } from "./finnhub.service";
 
+/**
+ * Stocks service
+ */
 @Injectable()
 export class StocksService {
-    socket: WebSocket;
+    /** Map holds client subscriptions */
+    clientSubscriptions = new Map<string, Set<WebSocket>>()
 
-    subscriptions: { [key: string]: WebSocket[] } = {}
-
-    constructor(private readonly httpService: HttpService) {
-        /* TODO get process env variables from config service */
-        this.socket = new WebSocket(`${process.env.FINNHUB_WS_ADDRESS}?token=${process.env.FINNHUB_API_KEY}`)
-        this.socket.addEventListener('open', (event) => {
-            console.log(`${process.env.FINNHUB_WS_ADDRESS} Trading Socket Ready!`);
-        })
-        this.socket.addEventListener('message', this.onMessageFromMarket);
+    constructor(private readonly finnhubService: FinnhubService) {
+        this.finnhubService.messagesFromStockMarket().subscribe(this.onMessageFromMarket)
     }
 
-    async search(query: ITickersQueryDTO): Promise<ITickers> {
-        /* TODO get process env variables from config service */
-        const url = `${process.env.FINNHUB_ADDRESS}/api/v1/search`;
-        const { data } = await firstValueFrom(
-            this.httpService.get<ITickers>(url,
-                {
-                    params: query,
-                    headers: { "X-Finnhub-Token": process.env.FINNHUB_API_KEY }
-                }).pipe(
-                    catchError((error: AxiosError) => {
-                        /* TODO handle exceptions properly */
-                        console.log(error.response?.data);
-                        throw 'An error happened!';
-                    })
-                )
-        )
-        return data
+    /** Search stocks by query parameters */
+    async search(query: StocksSearchQueryDTO): Promise<StocksSearchResult> {
+        return this.finnhubService.search(query)
     }
 
-    async status(query: IMarketStatusQueryDTO): Promise<IMarketStatus> {
-        /* TODO get process env variables from config service */
-        const url = `${process.env.FINNHUB_ADDRESS}/api/v1/stock/market-status`;
-        const { data } = await firstValueFrom(
-            this.httpService.get<IMarketStatus>(url,
-                {
-                    params: query,
-                    headers: { "X-Finnhub-Token": process.env.FINNHUB_API_KEY }
-                }).pipe(
-                    catchError((error: AxiosError) => {
-                        /* TODO handle exceptions properly */
-                        console.log(error.response?.data);
-                        throw 'An error happened!';
-                    })
-                )
-        )
-        return data
+    /** Retrieve current market status  */
+    async status(query: MarketStatusQueryDTO): Promise<MarketStatus> {
+        return this.finnhubService.status(query)
     }
 
-    onMessageFromMarket = (event: MessageEvent) => {
-        console.log('Message from stockmarkt', event.data);
-        const { data = [] } = JSON.parse(event.data);
+    /** Handler for message from stock market */
+    onMessageFromMarket = (message: any) => {
+        const { data = [] } = message;
         data.forEach(({ s, p, t }: { s: string, p: number, t: number }) => {
-            this.subscriptions[s]?.forEach(client => {
+            this.clientSubscriptions.get(s)?.forEach(client => {
                 client.send(JSON.stringify({ type: 'price', ticker: s, price: p, time: t }))
             })
         })
     }
 
+    /** Subscribes client to stocks ticker */
     subscribe(client: WebSocket, symbol: string) {
-        const isSubscriptionExist = this.subscriptions[symbol] && Array.isArray(this.subscriptions[symbol]) && !!this.subscriptions[symbol].length;
-
-        if (isSubscriptionExist) {
-            if (!this.subscriptions[symbol].includes(client)) {
-                this.subscriptions[symbol].push(client);
-            }
-        } else {
-            this.socket.send(JSON.stringify({ type: 'subscribe', symbol }))
-            console.log('Message to stockmarkt: subscribe', symbol);
-            if (this.subscriptions[symbol]) {
-                this.subscriptions[symbol].push(client);
-            } else {
-                this.subscriptions[symbol] = [client];
-            }
+        const clientSet = this.clientSubscriptions.get(symbol) || new Set()
+        const isSubscriptionExist = clientSet.size > 0
+        
+        if (!isSubscriptionExist) {
+            this.finnhubService.subscribe(symbol)
         }
+
+        clientSet.add(client)
+        this.clientSubscriptions.set(symbol, clientSet);
     }
 
+    /** Unsubscribes client from stocks ticker */
     unsubscribe(client: WebSocket, symbol: string) {
-        const isClientSubscriptionExist = this.subscriptions[symbol] && Array.isArray(this.subscriptions[symbol]) && this.subscriptions[symbol].includes(client);
+        const clientSet = this.clientSubscriptions.get(symbol) || new Set()
+        clientSet.delete(client);
 
-        if (isClientSubscriptionExist) {
-            this.subscriptions[symbol] = this.subscriptions[symbol].filter(subscribedClient => subscribedClient !== client)
-            if (!this.subscriptions[symbol].length) {
-                this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
-                console.log('Message to stockmarkt: unsubscribe', symbol);
-            }
+        if (clientSet.size === 0) {
+            this.finnhubService.unsubscribe(symbol);
+            this.clientSubscriptions.delete(symbol);
         } else {
-            this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
-            console.log('Message to stockmarkt: unsubscribe', symbol);
+            this.clientSubscriptions.set(symbol, clientSet);
         }
     }
 
+    /** Unsubscribes client from all tickers */
     unsubscribeAll(client: WebSocket) {
-        Object.keys(this.subscriptions).forEach(symbol => {
-            this.subscriptions[symbol] = this.subscriptions[symbol].filter(subscribedClient => subscribedClient !== client)
-            if (!this.subscriptions[symbol].length) {
-                this.socket.send(JSON.stringify({ type: 'unsubscribe', symbol }))
-                console.log('Message to stockmarkt: unsubscribe', symbol);
-            }
+        Array.from(this.clientSubscriptions.keys()).forEach(symbol => {
+            this.unsubscribe(client, symbol);
         })
     }
 
+    /**
+     * Method only for testing when stock market is closed 
+     */
     genId1: NodeJS.Timeout
     genId2: NodeJS.Timeout
     generation() {
         clearInterval(this.genId1);
         clearInterval(this.genId2);
-        /* TODO Testing in holiday */
         let aapl = 196.58
         let msft = 480.24
         let tsla = 322.05
@@ -130,33 +89,23 @@ export class StocksService {
         }
 
         this.genId1 = setInterval(() => {
-            const data = JSON.stringify({
-                data: [
-                    { p: tsla, s: 'TSLA', t: Number((new Date())) },
-                    { p: amzn, s: 'AMZN', t: Number((new Date())) },
-                ]
-            })
-            aapl = randomizeStockPrice(aapl);
-            msft = randomizeStockPrice(msft);
+            const data = [
+                { p: tsla, s: 'TSLA', t: Number((new Date())) },
+                { p: amzn, s: 'AMZN', t: Number((new Date())) },
+            ]
             tsla = randomizeStockPrice(tsla);
             amzn = randomizeStockPrice(amzn);
-            const message = new MessageEvent('test', { data });
-            this.onMessageFromMarket(message);
+            this.onMessageFromMarket({ data });
         }, 1100)
 
-        this.genId1 = setInterval(() => {
-            const data = JSON.stringify({
-                data: [
-                    { p: aapl, s: 'AAPL', t: Number((new Date())) },
-                    { p: msft, s: 'MSFT', t: Number((new Date())) },
-                ]
-            })
+        this.genId2 = setInterval(() => {
+            const data = [
+                { p: aapl, s: 'AAPL', t: Number((new Date())) },
+                { p: msft, s: 'MSFT', t: Number((new Date())) },
+            ]
             aapl = randomizeStockPrice(aapl);
             msft = randomizeStockPrice(msft);
-            tsla = randomizeStockPrice(tsla);
-            amzn = randomizeStockPrice(amzn);
-            const message = new MessageEvent('test', { data });
-            this.onMessageFromMarket(message);
+            this.onMessageFromMarket({ data });
         }, 700)
     }
 }

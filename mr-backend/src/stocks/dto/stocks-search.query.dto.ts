@@ -1,10 +1,13 @@
 import { IsEnum, IsNotEmpty, IsOptional } from "class-validator";
 
+/** Supported list of exchange codes */
 export enum ExchangeEnum{
     US = 'US'
 }
 
-export class ITickersQueryDTO {
+/** Parameters for stock search */
+export class StocksSearchQueryDTO {
+    /** Search string */
     @IsNotEmpty()
     q: string;
     @IsOptional()

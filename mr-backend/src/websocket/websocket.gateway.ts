@@ -1,6 +1,9 @@
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway } from "@nestjs/websockets";
 import { StocksService } from "src/stocks/stocks.service";
 
+/**
+ * WebSocket Gateway to establish real-time communication between client and server
+ */
 @WebSocketGateway(3001)
 export class WSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(private stocksService: StocksService) { }
@@ -11,8 +14,14 @@ export class WSocketGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
 
     handleMessage = (client: WebSocket) => (event: MessageEvent) => {
-        const data = JSON.parse(event.data);
-        
+        let data: any;
+        try {
+            data = JSON.parse(event.data);
+        } catch {
+            console.error('Invalid JSON from client')
+            return
+        }
+
         switch (data.type) {
             case 'subscribe':
                 this.stocksService.subscribe(client, data.symbol)
@@ -20,6 +29,8 @@ export class WSocketGateway implements OnGatewayConnection, OnGatewayDisconnect 
             case 'unsubscribe':
                 this.stocksService.unsubscribe(client, data.symbol)
                 break;
+            default:
+                console.warn('Unknown message type, incomming data:', data);
         }
     }
 
@@ -28,3 +39,4 @@ export class WSocketGateway implements OnGatewayConnection, OnGatewayDisconnect 
         this.stocksService.unsubscribeAll(client);
     }
 }
+
