@@ -5,6 +5,10 @@
                 <div>{{ item.symbol }}</div>
                 <div>{{ item.description}}</div>
             </div>
+            <div class="flex flex-col flex-justify-content-center flex-align-items-end" *ngIf="prices[item.symbol]">
+                <small>USD</small>
+                <small>{{ prices[item.symbol].price }}</small>
+            </div>
             <div class="flex flex-row flex-justify-content-center" *ngIf="!!actions.length">
                 <actions [item]="item" [actions]="actions" />
             </div>

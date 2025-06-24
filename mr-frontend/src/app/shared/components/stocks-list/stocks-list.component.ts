@@ -5,6 +5,7 @@ import { NgClass, NgFor, NgIf } from "@angular/common";
 import { DataViewModule } from "primeng/dataview";
 import { ActionsComponent } from "../actions/actions.component";
 import { Action } from "../actions/actions.model";
+import { StockPrices } from "../../services/prices.model";
 
 /**
  * Component for displaying a list of stocks with available actions
@@ -23,4 +24,7 @@ export class StocksListComponent {
 
     /** Actions available for each stock item */
     @Input() actions: Action[] = []
+
+    /** Actual stock prices */
+    @Input() prices: StockPrices = {}
 }

@@ -13,6 +13,9 @@ export class PricesService {
     /** Subject holding the latest stock prices for subscribed tickers */
     private actualPriceSubject = new BehaviorSubject<StockPrices>({})
 
+    /** Observable exposing the latest stock prices for subscribed tickers */
+    readonly actualPrice$ = this.actualPriceSubject.asObservable();
+
     constructor(private webSocketService: WebSocketService) {
         this.webSocketService.getMessage().subscribe(
             this.onWebSocketServiceMessage
@@ -54,7 +57,7 @@ export class PricesService {
      * @returns Observable of stock prices
      */
     getActualPrice(): Observable<StockPrices> {
-        return this.actualPriceSubject.asObservable()
+        return this.actualPrice$
     }
 
     /**

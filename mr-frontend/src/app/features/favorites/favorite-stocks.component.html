@@ -1,6 +1,6 @@
 <section>
     <h3>Favorite stocks</h3>
     <div *ngIf="favorites$ | async as favorites">
-        <stocks-list [stocks]="favorites" [actions]="actions" emptyMessage="Your favorite stocks will appear here." />
+        <stocks-list [stocks]="favorites" [actions]="actions" [prices]="prices" emptyMessage="Your favorite stocks will appear here." />
     </div>
 </section>

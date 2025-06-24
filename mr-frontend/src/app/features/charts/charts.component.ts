@@ -5,7 +5,7 @@ import { ChartComponent, ChartData, ChartOptions } from 'chart.js';
 import { SubscriptionsService } from '../../shared/services/subscriptions.service';
 import { generateColor } from '../../shared/utils/helpers';
 import { StockPrices } from '../../shared/services/prices.model';
-import { Subscription } from 'rxjs';
+import { map, OperatorFunction, Subscription } from 'rxjs';
 
 /**
  * Component responsible for displaying price and average charts for subscribed tickers.
@@ -31,7 +31,7 @@ export class ChartsComponent implements AfterViewInit, OnDestroy {
   data10sec: ChartData<'line'> = { datasets: [] }
   /** Data for 1 min average chart component */
   data1min: ChartData<'line'> = { datasets: [] }
-  /** Data for 15 average chart component */
+  /** Data for 15 min average chart component */
   data15min: ChartData<'line'> = { datasets: [] }
   /** Settings for all chart components */
   options: ChartOptions<'line'> = {
@@ -88,9 +88,32 @@ export class ChartsComponent implements AfterViewInit, OnDestroy {
     this.subscription.add(
       this.subscriptionsService.unsubscribed().subscribe(unsubscribed => {
         unsubscribed.forEach(ticker => this.pricesService.unsubscribe(ticker));
+        /* Remove data from charts */
+        this.removeTickersFromChart(this.chartComponent, unsubscribed);
+        this.removeTickersFromChart(this.chartComponent10sec, unsubscribed);
+        this.removeTickersFromChart(this.chartComponent1min, unsubscribed);
+        this.removeTickersFromChart(this.chartComponent15min, unsubscribed);
       })
     )
+  }
 
+  /**
+   * Removes datasets with the given tickers from the provided chart
+   * @param chartComponent The chart component from which to remove datasets
+   * @param tickers An array of ticker symbols identifying which datasets to remove
+   */
+  private removeTickersFromChart(chartComponent: ChartComponent, tickers: string[]) {
+    const chartData = (chartComponent as any)?.chart?.data as ChartData<'line', { x: number, y: number }[]>;
+
+    for (const ticker of tickers) {
+      const dataIndex = chartData.datasets.findIndex(item => item.label === ticker)
+      if (dataIndex >= 0) {
+        chartData.datasets.splice(dataIndex, 1);
+
+      }
+    }
+
+    (chartComponent as any)?.chart?.update()
   }
 
   /**
@@ -101,15 +124,15 @@ export class ChartsComponent implements AfterViewInit, OnDestroy {
   onPriceChanged = (chartComponent: ChartComponent) => {
     let lastTime = Date.now();
     return function (prices: StockPrices) {
-      const chartData: ChartData<'line', { x: number, y: number }[]> = { datasets: [] } = (chartComponent as any)?.chart?.data
-
+      const chartData = (chartComponent as any)?.chart?.data as ChartData<'line', { x: number, y: number }[]>;
+      
       for (const ticker in prices) {
         const tickerData = chartData.datasets.find(item => item.label === ticker)
         if (tickerData) {
           tickerData.data.push({ x: prices[ticker].time, y: prices[ticker].price });
           /* Stock prices sometimes arrive unsorted, so we explicitly sort them */
           if (lastTime > prices[ticker].time) {
-             tickerData.data.sort((a, b) => a.x - b.x)
+            tickerData.data.sort((a, b) => a.x - b.x)
           }
         } else {
           chartData.datasets.push({
@@ -125,21 +148,42 @@ export class ChartsComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /* Keeps only subscribed tickers in the price data */
+  private onlySubscribedPrices(): OperatorFunction<StockPrices, StockPrices> {
+    return map(prices => {
+      const result: StockPrices = {}
+      for (const ticker in prices) {
+        if (this.subscriptionsService.isSubscribed(ticker)) {
+          result[ticker] = prices[ticker]
+        }
+      }
+      return result
+    })
+  }
+
   /**
    * Subscribes to price streams and updates corresponding chart components with live data
    */
   ngAfterViewInit() {
     this.subscription.add(
-      this.pricesService.getActualPrice().subscribe(this.onPriceChanged(this.chartComponent))
+      this.pricesService.getActualPrice()
+        .pipe(this.onlySubscribedPrices())
+        .subscribe(this.onPriceChanged(this.chartComponent))
     )
     this.subscription.add(
-      this.pricesService.getAveragePrice(10000).subscribe(this.onPriceChanged(this.chartComponent10sec))
+      this.pricesService.getAveragePrice(10000)
+        .pipe(this.onlySubscribedPrices())
+        .subscribe(this.onPriceChanged(this.chartComponent10sec))
     )
     this.subscription.add(
-      this.pricesService.getAveragePrice(60000).subscribe(this.onPriceChanged(this.chartComponent1min))
+      this.pricesService.getAveragePrice(60000)
+        .pipe(this.onlySubscribedPrices())
+        .subscribe(this.onPriceChanged(this.chartComponent1min))
     )
     this.subscription.add(
-      this.pricesService.getAveragePrice(15 * 60000).subscribe(this.onPriceChanged(this.chartComponent15min))
+      this.pricesService.getAveragePrice(15 * 60000)
+        .pipe(this.onlySubscribedPrices())
+        .subscribe(this.onPriceChanged(this.chartComponent15min))
     )
   }
 
