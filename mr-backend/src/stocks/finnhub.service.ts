@@ -7,26 +7,43 @@ import { StocksSearchQueryDTO } from "./dto/stocks-search.query.dto";
 import { StocksSearchResult } from "./dto/stocks-search.response";
 import { MarketStatusQueryDTO } from "./dto/market-status.query.dto";
 import { MarketStatus } from "./dto/market-status.response";
+import { ConfigService } from "@nestjs/config";
 
 /**
  * Provider spicific stocks information service
  */
 @Injectable()
 export class FinnhubService {
-    /* TODO add to config service */
-    private finnhubHttp = process.env.FINNHUB_ADDRESS;
-    private finnhubWS = process.env.FINNHUB_WS_ADDRESS;
-    private finnhubApiKey = process.env.FINNHUB_API_KEY;
+    private finnhubHttp: string;
+    private finnhubWS: string;
+    private finnhubApiKey: string;
 
-    private tokenHeader = { "X-Finnhub-Token": this.finnhubApiKey }
+    private tokenHeader: Record<string, string>
 
-    private searchUrl = `${this.finnhubHttp}/api/v1/search`
-    private marketStatusUrl = `${this.finnhubHttp}/api/v1/stock/market-status`
+    private searchUrl: string
+    private marketStatusUrl: string
 
     /** Subject that communicates with the Finnhub server via WebSocket */
     private socket$: WebSocketSubject<any>;
 
-    constructor(private readonly httpService: HttpService) {
+    constructor(private readonly httpService: HttpService, private configService: ConfigService) {
+        const finnhubHttp = this.configService.get<string>('finnhub.address')
+        const finnhubWS = this.configService.get<string>('finnhub.wsAddress')
+        const finnhubApiKey = this.configService.get<string>('finnhub.apiKey')
+
+        if (!finnhubHttp || !finnhubWS || !finnhubApiKey) {
+            throw new Error(`FinnhubService: ConfigService: Missing required config: "finnhub.address", "finnhub.wsAddress" or "finnhub.apiKey"`)
+        }
+
+        this.finnhubHttp = finnhubHttp;
+        this.finnhubWS = finnhubWS;
+        this.finnhubApiKey = finnhubApiKey;
+
+        this.tokenHeader = { "X-Finnhub-Token": this.finnhubApiKey }
+
+        this.searchUrl = `${this.finnhubHttp}/api/v1/search`
+        this.marketStatusUrl = `${this.finnhubHttp}/api/v1/stock/market-status`
+
         this.socket$ = webSocket(`${this.finnhubWS}?token=${this.finnhubApiKey}`);
     }
 
