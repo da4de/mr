@@ -1,7 +1,7 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { AxiosError } from "axios";
-import { catchError, firstValueFrom, Observable, tap } from "rxjs";
+import { catchError, firstValueFrom, Observable, Subject, tap, timer } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { StocksSearchQueryDTO } from "./dto/stocks-search.query.dto";
 import { StocksSearchResult } from "./dto/stocks-search.response";
@@ -18,13 +18,16 @@ export class FinnhubService {
     private finnhubWS: string;
     private finnhubApiKey: string;
 
-    private tokenHeader: Record<string, string>
+    private tokenHeader: Record<string, string>;
 
-    private searchUrl: string
-    private marketStatusUrl: string
+    private searchUrl: string;
+    private marketStatusUrl: string;
 
     /** Subject that communicates with the Finnhub server via WebSocket */
     private socket$: WebSocketSubject<any>;
+    private messages$ = new Subject<any>();
+
+    private subscriptions = new Set<string>();
 
     constructor(private readonly httpService: HttpService, private configService: ConfigService) {
         const finnhubHttp = this.configService.get<string>('finnhub.address')
@@ -39,12 +42,12 @@ export class FinnhubService {
         this.finnhubWS = finnhubWS;
         this.finnhubApiKey = finnhubApiKey;
 
-        this.tokenHeader = { "X-Finnhub-Token": this.finnhubApiKey }
+        this.tokenHeader = { "X-Finnhub-Token": this.finnhubApiKey };
 
-        this.searchUrl = `${this.finnhubHttp}/api/v1/search`
-        this.marketStatusUrl = `${this.finnhubHttp}/api/v1/stock/market-status`
+        this.searchUrl = `${this.finnhubHttp}/api/v1/search`;
+        this.marketStatusUrl = `${this.finnhubHttp}/api/v1/stock/market-status`;
 
-        this.socket$ = webSocket(`${this.finnhubWS}?token=${this.finnhubApiKey}`);
+        this.webSocketConnect();
     }
 
     /** Search stocks by query parameters */
@@ -74,6 +77,48 @@ export class FinnhubService {
         return data
     }
 
+    /** Opening connection to the Finnhub WebSocket server */
+    private webSocketConnect() {
+        this.socket$ = webSocket({
+            url: `${this.finnhubWS}?token=${this.finnhubApiKey}`,
+            openObserver: {
+                next: () => {
+                    console.log('Server connected with Finnhub through WebSocket');
+                    /* Subscribes if the subscriptions set is not empty */
+                    this.subscriptions.forEach((symbol) => this.subscribe(symbol))
+                }
+            },
+            closeObserver: {
+                next: () => console.log('Server disconnected from Finnhub through WebSocket')
+            }
+        });
+
+        this.socket$
+            .subscribe({
+                next: (msg) => this.messages$.next(msg),
+                error: (error) => {
+                    if (error?.type === 'close') {
+                        console.warn('Close event received from Finnhub');
+                    } else {
+                        console.error('Finnhub WebSocket error:', error);
+                    }
+                    console.warn('Connection will be recreated');
+                    this.webSocketReconnect();
+                },
+                complete: () => {
+                    console.log('WebSocket connection closed');
+                }
+            })
+    }
+
+    /** Reopening connection to the Finnhub WebSocket server */
+    private webSocketReconnect() {
+        this.closeConnection();
+        timer(5000).subscribe(() => {
+            this.webSocketConnect();
+        })
+    }
+
     /**
      * Sends a message to the server through the WebSocket connection
      * @param message The message to send
@@ -88,7 +133,7 @@ export class FinnhubService {
      * @returns Observable of incoming messages
      */
     private getMessage(): Observable<any> {
-        return this.socket$.asObservable();
+        return this.messages$.asObservable();
     }
 
     /** 
@@ -103,11 +148,13 @@ export class FinnhubService {
 
     /** Sends subscription message to finnhub WebSocket connection */
     subscribe(symbol: string) {
+        this.subscriptions.add(symbol);
         this.sendMessage({ type: 'subscribe', symbol })
     }
 
     /** Sends unsubscription message to finnhub WebSocket connection */
     unsubscribe(symbol: string) {
+        this.subscriptions.delete(symbol);
         this.sendMessage({ type: 'unsubscribe', symbol })
     }
 

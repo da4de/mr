@@ -10,6 +10,8 @@ import { calcAveragePriceFromBuffer } from "./prices.utils";
  */
 @Injectable({ providedIn: 'root' })
 export class PricesService {
+    subscriptions = new Set<string>();
+
     /** Subject holding the latest stock prices for subscribed tickers */
     private actualPriceSubject = new BehaviorSubject<StockPrices>({})
 
@@ -20,6 +22,11 @@ export class PricesService {
         this.webSocketService.getMessage().subscribe(
             this.onWebSocketServiceMessage
         );
+
+        this.webSocketService.onConnected().subscribe(() => {
+            /* Subscribes if the subscriptions set is not empty */
+            this.subscriptions.forEach((symbol) => this.subscribe(symbol))
+        });
     }
 
     /**
@@ -38,6 +45,7 @@ export class PricesService {
      * @param symbol The stock ticker to subscribe to
      */
     subscribe(symbol: Ticker) {
+        this.subscriptions.add(symbol);
         this.webSocketService.sendMessage({ type: 'subscribe', symbol });
     }
 
@@ -46,6 +54,7 @@ export class PricesService {
      * @param symbol The stock ticker to unsubscribe from
      */
     unsubscribe(symbol: Ticker) {
+        this.subscriptions.delete(symbol);
         this.webSocketService.sendMessage({ type: 'unsubscribe', symbol });
         const actualPrice = { ...this.actualPriceSubject.getValue() };
         delete actualPrice[symbol];
